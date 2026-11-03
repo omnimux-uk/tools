@@ -97,12 +97,12 @@
         "artifacts": {
           "amd64": {
             "file": "omnimux-agent-windows-amd64.exe",
-            "sha256": "644eeab83971f7620d3c88c501ba87c3d57a4a4c883e45bbae32c3df8ac64f7d",
+            "sha256": "9fcf558646619024cbd2b9d4bffa00aa9f63bbc0acacf0947c5aed0cf5256b15",
             "size": 7398400
           },
           "arm64": {
             "file": "omnimux-agent-windows-arm64.exe",
-            "sha256": "3506a4c7c06fa743c4109d7045a6b6f32901c5d4a5016ffcd37be87caa6fe74b",
+            "sha256": "1d2c988289e065b01dbeba0c04e8a6d89d827971d645718fc129d4d4cfa91f31",
             "size": 6637568
           },
           "installer": {
@@ -111,7 +111,7 @@
             "size": 25346
           }
         },
-        "commit": "9ac2bd61a0b0c8ad573e861246a8e038899d2dbd"
+        "commit": "fb246ef29a6cd41578742b244cae532eb48e87cf"
       },
       "targets": [
         {
