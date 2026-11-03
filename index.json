@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "updated": "2026-11-03",
+  "tools": [
+    {
+      "id": "devicebridge",
+      "name": "Device Bridge",
+      "path": "devicebridge",
+      "summary": "Watch and drive an iOS simulator or Android device from a browser, over one forwarded port.",
+      "platforms": ["macos", "linux"],
+      "install": "./install.sh",
+      "run": "./devicebridge <ios|android>",
+      "requires": ["python3>=3.9,<3.14", "adb", "scrcpy", "idb_companion"],
+      "serves": "http",
+      "ports": {"ios": 9200, "android": 9201},
+      "notes": "Unauthenticated. Bind to loopback and reach it through the SSH forward."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Run a bridge using the virtualenv install.sh made, from anywhere.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PY="$HERE/.venv/bin/python"
+if [ ! -x "$PY" ]; then
+  echo "no virtualenv yet — run ./install.sh first" >&2
+  exit 1
+fi
+cd "$HERE"
+exec "$PY" -m bridge "$@"

@@ -1,0 +1,3 @@
+# The iOS backend talks to idb_companion over gRPC. The Android backend needs
+# nothing beyond the standard library, adb and scrcpy.
+fb-idb>=1.1.7
