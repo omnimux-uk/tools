@@ -18,7 +18,9 @@
           "name": "iOS simulator",
           "summary": "The booted simulator, streamed as H.264 and driven over idb.",
           "platforms": {
-            "macos": { "status": "supported" },
+            "macos": {
+              "status": "supported"
+            },
             "linux": {
               "status": "unsupported",
               "note": "iOS simulators are a macOS framework (CoreSimulator); no Linux build exists."
@@ -28,25 +30,40 @@
               "note": "iOS simulators are a macOS framework (CoreSimulator); no Windows build exists."
             }
           },
-          "install": { "macos": "./install.sh ios" },
-          "run": { "macos": "./devicebridge ios" },
+          "install": {
+            "macos": "./install.sh ios"
+          },
+          "run": {
+            "macos": "./devicebridge ios"
+          },
           "port": 9200,
           "serves": "http",
-          "requires": ["python>=3.9,<3.14", "xcrun", "idb_companion"]
+          "requires": [
+            "python>=3.9,<3.14",
+            "xcrun",
+            "idb_companion"
+          ]
         },
         {
           "id": "android",
           "name": "Android device or emulator",
           "summary": "Any adb-visible device or emulator, streamed through scrcpy's server.",
           "platforms": {
-            "macos": { "status": "supported" },
-            "linux": { "status": "supported" },
+            "macos": {
+              "status": "supported"
+            },
+            "linux": {
+              "status": "supported"
+            },
             "windows": {
               "status": "untested",
-              "note": "The code paths exist — stdlib only, CREATE_NEW_PROCESS_GROUP instead of setsid, and the server jar is found beside scrcpy.exe — but this has not been run on Windows. Use devicebridge.cmd; install.sh needs WSL or Git Bash."
+              "note": "The code paths exist \u2014 stdlib only, CREATE_NEW_PROCESS_GROUP instead of setsid, and the server jar is found beside scrcpy.exe \u2014 but this has not been run on Windows. Use devicebridge.cmd; install.sh needs WSL or Git Bash."
             }
           },
-          "install": { "macos": "./install.sh android", "linux": "./install.sh android" },
+          "install": {
+            "macos": "./install.sh android",
+            "linux": "./install.sh android"
+          },
           "run": {
             "macos": "./devicebridge android",
             "linux": "./devicebridge android",
@@ -54,7 +71,78 @@
           },
           "port": 9201,
           "serves": "http",
-          "requires": ["python>=3.9", "adb", "scrcpy"]
+          "requires": [
+            "python>=3.9",
+            "adb",
+            "scrcpy"
+          ]
+        }
+      ],
+      "distribution": {
+        "kind": "tree",
+        "path": "devicebridge"
+      }
+    },
+    {
+      "id": "windows-agent",
+      "name": "Omnimux Agent (Windows)",
+      "path": "windows-agent",
+      "summary": "The Windows counterpart of the machine-side toolkit: publishes notifications to ntfy and runs the reply daemon against psmux.",
+      "distribution": {
+        "kind": "release",
+        "repo": "omnimux-uk/tools",
+        "tag": "agent-v0.1.0",
+        "base": "https://github.com/omnimux-uk/tools/releases/download/agent-v0.1.0/",
+        "version": "0.1.0",
+        "artifacts": {
+          "amd64": {
+            "file": "omnimux-agent-windows-amd64.exe",
+            "sha256": "f8ae94fd22630a8f4810dbd8ffcbcbf8a62618ea658e16c587dc6c3e4aaf6fca",
+            "size": 7398400
+          },
+          "arm64": {
+            "file": "omnimux-agent-windows-arm64.exe",
+            "sha256": "0f98de571b88003136b10496ce60f74f57bf745f954bd74029fe36119b327def",
+            "size": 6637568
+          },
+          "installer": {
+            "file": "install.ps1",
+            "sha256": "89b9ed65e990bdde443bae60e080ec0794236ba5726d9a499a0e7c32d940991f",
+            "size": 22338
+          }
+        }
+      },
+      "targets": [
+        {
+          "id": "agent",
+          "name": "omnimux-agent",
+          "summary": "Installed on the Windows machine being set up, not on the machine running Omnimux.",
+          "platforms": {
+            "windows": {
+              "status": "supported"
+            },
+            "macos": {
+              "status": "unsupported",
+              "note": "macOS machines use the POSIX toolkit \u2014 tmux-notify and tmuxremote-reply-daemon."
+            },
+            "linux": {
+              "status": "unsupported",
+              "note": "Linux machines use the POSIX toolkit \u2014 tmux-notify and tmuxremote-reply-daemon."
+            }
+          },
+          "install": {
+            "windows": ".\\install.ps1"
+          },
+          "run": {
+            "windows": ".\\install.ps1"
+          },
+          "architectures": [
+            "amd64",
+            "arm64"
+          ],
+          "requires": [
+            "psmux (for Yes/No replies)"
+          ]
         }
       ]
     }

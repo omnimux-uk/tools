@@ -13,6 +13,7 @@ Run it after editing index.json, and in CI if this repo ever gets one:
 
 import json
 import os
+import re
 import sys
 
 PLATFORMS = {"macos", "linux", "windows"}
@@ -49,6 +50,39 @@ def main():
             bad(tid, f"path {tool.get('path')!r} is not a directory")
         elif not os.path.isfile(os.path.join(path, "README.md")):
             bad(tid, "no README.md -- every tool documents itself")
+
+        # How the tool reaches a machine. "tree" means clone the repo and
+        # cd into a directory; "release" means download published artifacts
+        # and check their digests before running them. The app cannot guess
+        # which, and the two have nothing in common at the point of use.
+        dist = tool.get("distribution")
+        if not isinstance(dist, dict):
+            bad(tid, "missing distribution")
+        elif dist.get("kind") == "tree":
+            if dist.get("path") != tool.get("path"):
+                bad(tid, "distribution.path does not match the tool path")
+        elif dist.get("kind") == "release":
+            for field in ("repo", "tag", "base", "version", "artifacts"):
+                if not dist.get(field):
+                    bad(tid, f"release distribution missing {field}")
+            base = dist.get("base", "")
+            if base and not base.endswith("/"):
+                bad(tid, "distribution.base must end with / -- it is joined with a filename")
+            if base and not base.startswith("https://"):
+                bad(tid, "distribution.base must be https")
+            for arch, art in (dist.get("artifacts") or {}).items():
+                # A digest is the whole point of shipping a binary this way:
+                # without it the app is downloading an executable and running
+                # it on someone's machine on the strength of a URL.
+                digest = (art or {}).get("sha256", "")
+                if not re.fullmatch(r"[0-9a-f]{64}", digest or ""):
+                    bad(f"{tid}/{arch}", "sha256 must be 64 lowercase hex characters")
+                if not isinstance((art or {}).get("size"), int) or art["size"] <= 0:
+                    bad(f"{tid}/{arch}", "size must be a positive integer")
+                if not (art or {}).get("file"):
+                    bad(f"{tid}/{arch}", "missing file name")
+        else:
+            bad(tid, f"distribution.kind {dist.get('kind')!r} not in ['tree', 'release']")
 
         for target in tool.get("targets", []):
             gid = f"{tid}/{target.get('id', '<no id>')}"

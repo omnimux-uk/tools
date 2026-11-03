@@ -12,8 +12,12 @@ installs itself outside its own directory.
 |---|---|:-:|:-:|:-:|
 | [**devicebridge**](devicebridge/) — iOS simulator | Stream and drive the booted simulator in a browser | ✅ | — | — |
 | [**devicebridge**](devicebridge/) — Android | Stream and drive any adb device or emulator | ✅ | ✅ | ⚠️ |
+| [**windows-agent**](windows-agent/) | Notifications and Yes/No replies on a Windows machine, via psmux | — | — | ✅ |
 
 ✅ supported  ⚠️ untested  — not possible
+
+The platform column is the machine the tool **runs on**, which for
+`windows-agent` is the machine being set up, not the one running Omnimux.
 
 ## Targeting
 
@@ -53,6 +57,39 @@ different words in front of a user. Anything not `supported` must carry a
 
 `run` is keyed by platform too, since the entry point isn't always the same
 file: POSIX gets `./devicebridge`, Windows gets `devicebridge.cmd`.
+
+### How a tool reaches a machine
+
+Two shapes, and `distribution.kind` says which:
+
+```json
+"distribution": { "kind": "tree", "path": "devicebridge" }
+```
+
+```json
+"distribution": {
+  "kind": "release", "repo": "omnimux-uk/tools", "tag": "agent-v0.1.0",
+  "base": "https://github.com/omnimux-uk/tools/releases/download/agent-v0.1.0/",
+  "artifacts": {
+    "amd64": { "file": "omnimux-agent-windows-amd64.exe", "sha256": "f8ae…", "size": 7398400 }
+  }
+}
+```
+
+`tree` means clone the repo and work in a directory. `release` means download
+published artifacts — for anything compiled, or large enough that putting it
+in git would bloat every clone forever.
+
+**Every release artifact carries a `sha256` and a `size`, and the checker
+rejects one that doesn't.** Without a digest the app is downloading an
+executable and running it on someone's machine on the strength of a URL. With
+one, the app can ship the digest it was built against — a few hundred bytes,
+signed inside its own bundle — and refuse anything that doesn't match. That
+is the same guarantee as bundling the binary, at none of the weight.
+
+Source does not move here. `windows-agent` is built from `server/agent/` in
+the Omnimux tree and published as a release; this repo holds its README and
+its digests, not a second copy of the Go code.
 
 Check it after editing:
 
