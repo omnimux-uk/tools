@@ -70,8 +70,9 @@ Two shapes, and `distribution.kind` says which:
 "distribution": {
   "kind": "release", "repo": "omnimux-uk/tools", "tag": "agent-v0.1.0",
   "base": "https://github.com/omnimux-uk/tools/releases/download/agent-v0.1.0/",
+  "commit": "9ac2bd61a0b0c8ad573e861246a8e038899d2dbd",
   "artifacts": {
-    "amd64": { "file": "omnimux-agent-windows-amd64.exe", "sha256": "f8ae…", "size": 7398400 }
+    "amd64": { "file": "omnimux-agent-windows-amd64.exe", "sha256": "644eeab8…", "size": 7398400 }
   }
 }
 ```
@@ -86,6 +87,11 @@ executable and running it on someone's machine on the strength of a URL. With
 one, the app can ship the digest it was built against — a few hundred bytes,
 signed inside its own bundle — and refuse anything that doesn't match. That
 is the same guarantee as bundling the binary, at none of the weight.
+
+`commit` sits beside the digests because a Go binary is not reproducible from
+source alone: the revision is stamped into it and `-trimpath` leaves it
+there. A digest is only checkable against the commit it was built at, so that
+commit is published with it.
 
 Source does not move here. `windows-agent` is built from `server/agent/` in
 the Omnimux tree and published as a release; this repo holds its README and
