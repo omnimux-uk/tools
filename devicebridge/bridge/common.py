@@ -23,6 +23,24 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 STREAM_IDLE_TIMEOUT = 10.0
 
 
+POSIX = os.name == "posix"
+
+
+def spawn_kwargs():
+    """Popen arguments that put a child in a group of its own.
+
+    These video producers spawn workers, and killing only the process we
+    started leaves those running and still writing -- see kill_group. Putting
+    the child at the head of its own group is what makes the whole tree
+    reachable, and it is spelled differently on each platform: setsid on
+    POSIX, CREATE_NEW_PROCESS_GROUP on Windows. Passing preexec_fn on Windows
+    does not degrade gracefully, it raises.
+    """
+    if POSIX:
+        return {"preexec_fn": os.setsid}
+    return {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+
+
 def kill_group(proc, grace=3.0):
     """Stop a child and everything it spawned, politely first.
 
@@ -40,6 +58,24 @@ def kill_group(proc, grace=3.0):
     shut the stream down; SIGKILL is the fallback if it will not go.
     """
     if proc is None:
+        return
+    if not POSIX:
+        # Windows has neither process groups in the POSIX sense nor SIGKILL.
+        # CTRL_BREAK_EVENT is the one signal that reaches a whole group, and
+        # only a group made with CREATE_NEW_PROCESS_GROUP -- which is what
+        # spawn_kwargs() asks for. It plays the part SIGINT plays below: the
+        # child gets to close its stream before anything harsher. taskkill /T
+        # is the fallback, and unlike proc.kill() it takes the children too.
+        if proc.poll() is not None:
+            return
+        try:
+            proc.send_signal(signal.CTRL_BREAK_EVENT)
+            proc.wait(timeout=grace)
+            return
+        except Exception:
+            pass
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                       capture_output=True)
         return
     for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGKILL):
         if proc.poll() is not None:
@@ -188,7 +224,7 @@ class StreamHub:
                 return
             self.proc = subprocess.Popen(
                 self.argv, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                preexec_fn=os.setsid)
+                **spawn_kwargs())
             threading.Thread(target=self._reader, args=(self.proc,),
                              daemon=True).start()
 

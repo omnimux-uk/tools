@@ -20,6 +20,39 @@ automatically and say so in the status bar.
 
 ---
 
+---
+
+## Platform support
+
+The two halves do not travel together. Android needs only `adb` and `scrcpy`,
+which run everywhere; an iOS simulator is a macOS framework and cannot exist
+anywhere else.
+
+| | macOS | Linux | Windows |
+|---|:-:|:-:|:-:|
+| **iOS simulator** | ✅ supported | — not possible | — not possible |
+| **Android** | ✅ supported | ✅ supported | ⚠️ untested |
+
+`./install.sh` knows this: run it on Linux and it skips the iOS half with a
+warning, and `./install.sh ios` on a non-Mac refuses outright rather than
+working through a list of prerequisites you could never satisfy.
+
+**On Windows**, the Android target should work and has not been run:
+
+- Use `devicebridge.cmd`, not the bash launcher.
+- There is no virtualenv to build — the Android side is standard library
+  only, so `devicebridge.cmd` falls back to the system interpreter. You need
+  `adb` and `scrcpy` on `PATH`, nothing else.
+- `install.sh` itself needs WSL or Git Bash. It isn't required for Android.
+- The two things that would have broken it are already handled: process
+  groups use `CREATE_NEW_PROCESS_GROUP` and `taskkill /T` where POSIX uses
+  `setsid` and `killpg`, and the scrcpy server jar is found beside
+  `scrcpy.exe` rather than at a Unix prefix.
+
+If you run it there, the honest status is one line in `../index.json`.
+
+---
+
 ## Install
 
 ```bash
@@ -63,9 +96,11 @@ Android needs no Python packages at all — it is standard library plus `adb`.
 Boot a device first, then:
 
 ```bash
-./devicebridge ios        # http://127.0.0.1:9200
+./devicebridge ios        # http://127.0.0.1:9200   (macOS only)
 ./devicebridge android    # http://127.0.0.1:9201
 ```
+
+On Windows that last one is `devicebridge.cmd android`.
 
 Both auto-detect: the iOS side picks the booted simulator and starts
 `idb_companion` if it is not already up; the Android side picks the first adb
@@ -255,8 +290,9 @@ bridge/
   ios.py       idb backend
   android.py   adb + scrcpy backend
   __main__.py  CLI
-install.sh     prerequisite checks and virtualenv
-devicebridge   launcher
+install.sh      prerequisite checks and virtualenv (macOS, Linux)
+devicebridge    launcher (POSIX)
+devicebridge.cmd  launcher (Windows, Android target only)
 ```
 
 The page is shared deliberately: a fix to the touch mapping or the decoder

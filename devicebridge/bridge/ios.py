@@ -21,7 +21,7 @@ import subprocess
 import threading
 import time
 
-from .common import StreamHub, kill_group
+from .common import StreamHub, kill_group, spawn_kwargs
 
 LOG = logging.getLogger("devicebridge.ios")
 
@@ -78,7 +78,7 @@ def ensure_companion(udid, wait=30, fresh=True):
     proc = subprocess.Popen(
         ["idb_companion", "--udid", udid, "--grpc-domain-sock", sock],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        preexec_fn=os.setsid)
+        **spawn_kwargs())
     deadline = time.time() + wait
     while time.time() < deadline:
         if os.path.exists(sock):

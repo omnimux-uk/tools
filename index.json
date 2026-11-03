@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "schema": 2,
   "updated": "2026-11-03",
   "tools": [
     {
@@ -7,13 +7,56 @@
       "name": "Device Bridge",
       "path": "devicebridge",
       "summary": "Watch and drive an iOS simulator or Android device from a browser, over one forwarded port.",
-      "platforms": ["macos", "linux"],
-      "install": "./install.sh",
-      "run": "./devicebridge <ios|android>",
-      "requires": ["python3>=3.9,<3.14", "adb", "scrcpy", "idb_companion"],
-      "serves": "http",
-      "ports": {"ios": 9200, "android": 9201},
-      "notes": "Unauthenticated. Bind to loopback and reach it through the SSH forward."
+      "install": {
+        "macos": "./install.sh",
+        "linux": "./install.sh",
+        "windows": null
+      },
+      "targets": [
+        {
+          "id": "ios",
+          "name": "iOS simulator",
+          "summary": "The booted simulator, streamed as H.264 and driven over idb.",
+          "platforms": {
+            "macos": { "status": "supported" },
+            "linux": {
+              "status": "unsupported",
+              "note": "iOS simulators are a macOS framework (CoreSimulator); no Linux build exists."
+            },
+            "windows": {
+              "status": "unsupported",
+              "note": "iOS simulators are a macOS framework (CoreSimulator); no Windows build exists."
+            }
+          },
+          "install": { "macos": "./install.sh ios" },
+          "run": { "macos": "./devicebridge ios" },
+          "port": 9200,
+          "serves": "http",
+          "requires": ["python>=3.9,<3.14", "xcrun", "idb_companion"]
+        },
+        {
+          "id": "android",
+          "name": "Android device or emulator",
+          "summary": "Any adb-visible device or emulator, streamed through scrcpy's server.",
+          "platforms": {
+            "macos": { "status": "supported" },
+            "linux": { "status": "supported" },
+            "windows": {
+              "status": "untested",
+              "note": "The code paths exist — stdlib only, CREATE_NEW_PROCESS_GROUP instead of setsid, and the server jar is found beside scrcpy.exe — but this has not been run on Windows. Use devicebridge.cmd; install.sh needs WSL or Git Bash."
+            }
+          },
+          "install": { "macos": "./install.sh android", "linux": "./install.sh android" },
+          "run": {
+            "macos": "./devicebridge android",
+            "linux": "./devicebridge android",
+            "windows": "devicebridge.cmd android"
+          },
+          "port": 9201,
+          "serves": "http",
+          "requires": ["python>=3.9", "adb", "scrcpy"]
+        }
+      ]
     }
   ]
 }

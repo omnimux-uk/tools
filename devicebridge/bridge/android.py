@@ -20,9 +20,11 @@ import os
 import random
 import re
 import shlex
+import shutil
 import socket
 import struct
 import subprocess
+import sys
 import threading
 import time
 
@@ -43,19 +45,62 @@ KEYS = {
     "ENTER": "KEYCODE_ENTER",
 }
 
+# Where a package manager drops the jar. Homebrew, the usual Linux prefixes,
+# a user-local install, and the two sandboxed Linux formats that put it
+# somewhere a prefix search would never reach.
 JAR_CANDIDATES = [
     "/opt/homebrew/share/scrcpy/scrcpy-server",
     "/usr/local/share/scrcpy/scrcpy-server",
     "/usr/share/scrcpy/scrcpy-server",
     os.path.expanduser("~/.local/share/scrcpy/scrcpy-server"),
+    "/snap/scrcpy/current/usr/local/share/scrcpy/scrcpy-server",
+    "/var/lib/flatpak/app/org.openredneck.scrcpy/current/active/files/"
+    "share/scrcpy/scrcpy-server",
 ]
 
 
 def find_server_jar():
-    for p in [os.environ.get("SCRCPY_SERVER_PATH")] + JAR_CANDIDATES:
-        if p and os.path.exists(p):
-            return p
+    """Locate scrcpy-server, which is a data file and not on any PATH.
+
+    Looking beside the scrcpy binary comes first and matters most. The
+    Windows build is a self-contained folder with the jar sitting next to
+    scrcpy.exe, and so is every portable or hand-built copy -- none of which
+    any list of distribution prefixes would ever name. Resolving symlinks on
+    the way means a /usr/local/bin/scrcpy pointing into a Homebrew cellar or
+    a Nix store still finds its own jar.
+    """
+    env = os.environ.get("SCRCPY_SERVER_PATH")
+    if env and os.path.exists(env):
+        return env
+
+    beside = []
+    exe = shutil.which("scrcpy")
+    if exe:
+        d = os.path.dirname(os.path.realpath(exe))
+        beside = [
+            os.path.join(d, "scrcpy-server"),
+            os.path.join(d, "scrcpy-server.jar"),
+            # The FHS layout: the binary in bin/, its data in ../share/.
+            os.path.join(d, os.pardir, "share", "scrcpy", "scrcpy-server"),
+        ]
+
+    for cand in beside + JAR_CANDIDATES:
+        if cand and os.path.exists(cand):
+            return os.path.normpath(cand)
     return None
+
+
+def install_hint():
+    """How to get scrcpy, in the words of the platform we are actually on."""
+    if sys.platform == "darwin":
+        return "brew install scrcpy"
+    if sys.platform.startswith("linux"):
+        return ("apt install scrcpy  (or dnf/pacman/snap -- "
+                "see github.com/Genymobile/scrcpy)")
+    if os.name == "nt":
+        return ("winget install Genymobile.scrcpy  (or scoop install scrcpy), "
+                "then make sure scrcpy.exe is on PATH")
+    return "see github.com/Genymobile/scrcpy"
 
 
 def scrcpy_version():
@@ -351,8 +396,9 @@ class Backend:
         jar = find_server_jar()
         if not jar:
             raise SystemExit(
-                "scrcpy-server not found. Install scrcpy (brew install scrcpy)\n"
-                "or set SCRCPY_SERVER_PATH to the jar.")
+                "scrcpy-server not found.\n"
+                f"  install scrcpy:  {install_hint()}\n"
+                "  or point SCRCPY_SERVER_PATH at the jar directly.")
         self.scrcpy_version = scrcpy_version()
         if not self.scrcpy_version:
             raise SystemExit("could not determine the scrcpy version; is scrcpy on PATH?")

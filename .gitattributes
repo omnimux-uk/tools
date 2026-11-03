@@ -1,0 +1,4 @@
+# The Windows launcher must reach a Windows machine with CRLF; cmd.exe
+# mis-parses a batch file with bare LF line endings.
+*.cmd text eol=crlf
+*.sh  text eol=lf
