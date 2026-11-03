@@ -97,20 +97,21 @@
         "artifacts": {
           "amd64": {
             "file": "omnimux-agent-windows-amd64.exe",
-            "sha256": "f8ae94fd22630a8f4810dbd8ffcbcbf8a62618ea658e16c587dc6c3e4aaf6fca",
+            "sha256": "644eeab83971f7620d3c88c501ba87c3d57a4a4c883e45bbae32c3df8ac64f7d",
             "size": 7398400
           },
           "arm64": {
             "file": "omnimux-agent-windows-arm64.exe",
-            "sha256": "0f98de571b88003136b10496ce60f74f57bf745f954bd74029fe36119b327def",
+            "sha256": "3506a4c7c06fa743c4109d7045a6b6f32901c5d4a5016ffcd37be87caa6fe74b",
             "size": 6637568
           },
           "installer": {
             "file": "install.ps1",
-            "sha256": "89b9ed65e990bdde443bae60e080ec0794236ba5726d9a499a0e7c32d940991f",
-            "size": 22338
+            "sha256": "10f10174df10d5c603fb8ae292af6f85a7ea6245ac0cac18d0579a7f06032763",
+            "size": 25346
           }
-        }
+        },
+        "commit": "9ac2bd61a0b0c8ad573e861246a8e038899d2dbd"
       },
       "targets": [
         {

@@ -71,8 +71,20 @@ scripts/build-agent.sh      # both architectures, plus SHA256SUMS and a manifest
 That script prints the `gh release create` line that publishes them here. The
 release is the distribution point; it is not a second copy of the source.
 
-Builds are reproducible on a given Go toolchain: two runs of the same source
-produce byte-identical binaries, so the digests can be checked independently.
+Builds are reproducible **at a given commit**, not from the source alone. Go
+stamps `vcs.revision`, `vcs.time` and `vcs.modified` into the binary and
+`-trimpath` does not strip them, so the identical source committed twice
+builds to different bytes. To reproduce a published digest, check out the
+commit named in `index.json` and build from a clean tree; `build-agent.sh`
+warns when the tree is dirty, because an artifact built from one records
+`vcs.modified=true` permanently.
+
+What the stamp buys in exchange is provenance you can read back off a
+deployed agent:
+
+```bash
+go version -m omnimux-agent-windows-amd64.exe | grep vcs
+```
 
 ## Licence
 
