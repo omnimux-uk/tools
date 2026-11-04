@@ -6,7 +6,8 @@ talking to, so a mistake here is not a broken build -- it is a tool offered
 on a system that cannot run it, failing in front of the user with whatever
 error the tool happens to produce. Hence a check rather than a convention.
 
-Run it after editing index.json, and in CI if this repo ever gets one:
+Run it after editing index.json. .github/workflows/check.yml runs it on
+every push and pull request, so it is the contract rather than advice:
 
     ./check-index.py
 """

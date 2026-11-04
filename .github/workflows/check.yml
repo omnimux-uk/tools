@@ -1,0 +1,37 @@
+# index.json is a contract with the app: it decides which tools get offered
+# on the machine at the other end. A mistake in it is not a broken build,
+# it is a tool offered on a system that cannot run it, failing in front of
+# whoever asked for it. check-index.py has always been able to catch that;
+# until now nothing made sure it had been run.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # python3 is already on the runner, so there is no setup step to
+      # pin, drift, or break.
+      - name: index.json says what each tool can run on
+        run: ./check-index.py
+
+      # These files are copied onto other people's machines and run there,
+      # so a syntax error reaches them rather than us. Compiling is not a
+      # test, but it is the cheapest line between the two.
+      - name: the Python at least parses
+        run: python3 -m compileall -q devicebridge/bridge
+
+      # The launchers decide which interpreter runs the above. install.sh
+      # in particular has had a `set -e` bug that only showed on the path
+      # where a prerequisite was missing.
+      - name: the shell at least parses
+        run: |
+          for f in devicebridge/install.sh devicebridge/devicebridge; do
+            sh -n "$f" && echo "ok  $f"
+          done
